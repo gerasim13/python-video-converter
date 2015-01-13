@@ -14,7 +14,10 @@ class BaseFormat(object):
     def parse_options(self, opt):
         if 'format' not in opt or opt.get('format') != self.format_name:
             raise ValueError('invalid Format format')
-        return ['-f', self.ffmpeg_format_name]
+        if len(self.ffmpeg_format_name)>0 :
+            return ['-f', self.ffmpeg_format_name]
+        else
+            return []
 
 
 class OggFormat(BaseFormat):
@@ -96,7 +99,7 @@ class WMVFormat(BaseFormat):
     WMV
     """
     format_name = 'wmv'
-    ffmpeg_format_name = 'wmv'
+    ffmpeg_format_name = ''
 
 
 format_list = [
