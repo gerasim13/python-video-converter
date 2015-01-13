@@ -456,6 +456,16 @@ class Mp2Codec(AudioCodec):
     """
     codec_name = 'mp2'
     ffmpeg_codec_name = 'mp2'
+    
+class WMACodec(AudioCodec):
+    """
+    WMA audio codec.
+    """
+    codec_name = 'wma'
+    ffmpeg_codec_name = 'wmav2'
+    
+
+     
 
 
 # Video Codecs
@@ -517,6 +527,13 @@ class DivxCodec(VideoCodec):
     codec_name = 'divx'
     ffmpeg_codec_name = 'mpeg4'
 
+class WMVCodec(VideoCodec):
+    """
+    WMV video codec.
+    """
+    codec_name = 'wmv'
+    ffmpeg_codec_name = 'msmpeg4'
+ 
 
 class Vp8Codec(VideoCodec):
     """
@@ -626,12 +643,12 @@ class DVDSub(SubtitleCodec):
 
 audio_codec_list = [
     AudioNullCodec, AudioCopyCodec, VorbisCodec, AacCodec, Mp3Codec, Mp2Codec,
-    FdkAacCodec, Ac3Codec, DtsCodec, FlacCodec
+    FdkAacCodec, Ac3Codec, DtsCodec, FlacCodec, WMACodec
 ]
 
 video_codec_list = [
     VideoNullCodec, VideoCopyCodec, TheoraCodec, H264Codec,
-    DivxCodec, Vp8Codec, H263Codec, FlvCodec, Mpeg1Codec,
+    DivxCodec, WMVCodec, Vp8Codec, H263Codec, FlvCodec, Mpeg1Codec,
     Mpeg2Codec
 ]
 
