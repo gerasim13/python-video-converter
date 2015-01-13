@@ -16,7 +16,7 @@ class BaseFormat(object):
             raise ValueError('invalid Format format')
         if len(self.ffmpeg_format_name)>0 :
             return ['-f', self.ffmpeg_format_name]
-        else
+        else :
             return []
 
 
