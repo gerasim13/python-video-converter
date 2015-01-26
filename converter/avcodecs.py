@@ -168,13 +168,15 @@ class VideoCodec(BaseCodec):
 
     encoder_options = {
         'codec': str,
-        'bitrate': int,
+        'bitrate': str,
         'fps': int,
         'width': int,
         'height': int,
         'mode': str,
         'src_width': int,
         'src_height': int,
+        'maxrate': str,
+        'minrate': str,
     }
 
     def _aspect_corrections(self, sw, sh, w, h, mode):
@@ -213,12 +215,12 @@ class VideoCodec(BaseCodec):
                 h0 = int(w / aspect)
                 assert h0 > h, (sw, sh, w, h)
                 dh = (h0 - h) / 2
-                return w, h0, 'scale=%d:%d, crop=%d:%d:0:%d' % (w, h0, w, h, dh)
+                return w, h0, 'scale=%d:%d, crop=%d:%d:0:%d, setsar=1:1' % (w, h0, w, h, dh)
             else:  # source is wider, need to crop left/right
                 w0 = int(h * aspect)
                 assert w0 > w, (sw, sh, w, h)
                 dw = (w0 - w) / 2
-                return w0, h, 'scale=%d:%d, crop=%d:%d:%d:0' % (w0, h, w, h, dw)
+                return w0, h, 'scale=%d:%d, crop=%d:%d:%d:0, setsar=1:1' % (w0, h, w, h, dw)
 
         if mode == 'pad':
             # target is taller, need to pad top/bottom
@@ -239,16 +241,15 @@ class VideoCodec(BaseCodec):
         super(VideoCodec, self).parse_options(opt)
 
         safe = self.safe_options(opt)
-
         if 'fps' in safe:
             f = safe['fps']
             if f < 1 or f > 120:
                 del safe['fps']
 
-        if 'bitrate' in safe:
-            br = safe['bitrate']
-            if br < 16 or br > 15000:
-                del safe['bitrate']
+        # if 'bitrate' in safe:
+        #     br = safe['bitrate']
+        #     if br < 16 or br > 15000:
+        #         del safe['bitrate']
 
         w = None
         h = None
@@ -295,10 +296,14 @@ class VideoCodec(BaseCodec):
         filters = safe['aspect_filters']
 
         optlist = ['-vcodec', self.ffmpeg_codec_name]
+        if 'maxrate' in safe:
+            optlist.extend(['-maxrate', str(safe['maxrate'])])
+        if 'minrate' in safe:
+            optlist.extend(['-minrate', str(safe['minrate'])])
         if 'fps' in safe:
             optlist.extend(['-r', str(safe['fps'])])
         if 'bitrate' in safe:
-            optlist.extend(['-vb', str(safe['bitrate']) + 'k'])  # FIXED
+            optlist.extend(['-vb', str(safe['bitrate'])])
         if w and h:
             optlist.extend(['-s', '%dx%d' % (w, h)])
 
@@ -491,6 +496,7 @@ class H264Codec(VideoCodec):
         # http://mewiki.project357.com/wiki/X264_Settings#profile
         'profile': str,  # default: not-set, for valid values see above link
         'tune': str,  # default: not-set, for valid values see above link
+        'level': int,
     })
 
     def _codec_specific_produce_ffmpeg_list(self, safe):
@@ -501,6 +507,8 @@ class H264Codec(VideoCodec):
             optlist.extend(['-crf', safe['quality']])
         if 'profile' in safe:
             optlist.extend(['-profile:v', safe['profile']])
+        if 'level' in safe:
+            optlist.extend(['-level', str(safe['level'])])
         if 'tune' in safe:
             optlist.extend(['-tune', safe['tune']])
         return optlist

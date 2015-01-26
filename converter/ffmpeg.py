@@ -350,7 +350,7 @@ class FFMpeg(object):
     @staticmethod
     def _spawn(cmds):
         logger.debug('Spawning ffmpeg with command: ' + ' '.join(cmds))
-        #print('Spawning ffmpeg with command: ' + ' '.join(cmds))
+        print('Spawning ffmpeg with command: ' + ' '.join(cmds))
         return Popen(cmds, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE,
                      close_fds=True)
 
@@ -423,6 +423,7 @@ class FFMpeg(object):
         cmds.extend(opts)
         cmds.extend(['-y', outfile])
         cmds.extend(['-loglevel', 'error'])
+        cmds.extend(['-movflags', 'faststart'])
 
         if timeout:
             def on_sigalrm(*_):
@@ -435,45 +436,6 @@ class FFMpeg(object):
             p = self._spawn(cmds)
         except OSError:
             raise FFMpegError('Error while calling ffmpeg binary')
-
-        # yielded = False
-        # buf = ''
-        # total_output = ''
-        # pat = re.compile(r'time=([0-9.:]+) ')
-        # while True:
-        #     if timeout:
-        #         signal.alarm(timeout)
-        #
-        #     ret = p.stderr.read(10)
-        #
-        #     if timeout:
-        #         signal.alarm(0)
-        #
-        #     if not ret:
-        #         break
-        #
-        #     ret = ret.decode(console_encoding, errors='ignore')
-        #     total_output += ret
-        #     buf += ret
-        #     if '\r' in buf:
-        #         line, buf = buf.split('\r', 1)
-        #
-        #         tmp = pat.findall(line)
-        #         if len(tmp) == 1:
-        #             timespec = tmp[0]
-        #             if ':' in timespec:
-        #                 timecode = 0
-        #                 for part in timespec.split(':'):
-        #                     timecode = 60 * timecode + float(part)
-        #             else:
-        #                 timecode = float(tmp[0])
-        #             yielded = True
-        #             yield timecode
-        #
-        # if timeout:
-        #     signal.signal(signal.SIGALRM, signal.SIG_DFL)
-        #
-        # p.communicate()  # wait for process to exit
         
         stdout,stderr = p.communicate()
         return_code   = p.wait()
@@ -485,30 +447,6 @@ class FFMpeg(object):
             err = stderr[0]
             raise FFMpegConvertError('Encoding error', cmd, stderr, err, pid=p.pid)
         return return_code
-        
-        # if total_output == '':
-        #     raise FFMpegError('Error while calling ffmpeg binary')
-        #
-        # cmd = ' '.join(cmds)
-        # if '\n' in total_output:
-        #     line = total_output.split('\n')[-2]
-        #
-        #     if line.startswith('Received signal'):
-        #         # Received signal 15: terminating.
-        #         raise FFMpegConvertError(line.split(':')[0], cmd, total_output, pid=p.pid)
-        #     if line.startswith(infile + ': '):
-        #         err = line[len(infile) + 2:]
-        #         raise FFMpegConvertError('Encoding error', cmd, total_output,
-        #                                  err, pid=p.pid)
-        #     if line.startswith('Error while '):
-        #         raise FFMpegConvertError('Encoding error', cmd, total_output,
-        #                                  line, pid=p.pid)
-        #     if not yielded:
-        #         raise FFMpegConvertError('Unknown ffmpeg error', cmd,
-        #                                  total_output, line, pid=p.pid)
-        # if p.returncode != 0:
-        #     raise FFMpegConvertError('Exited with code %d' % p.returncode, cmd,
-        #                              total_output, pid=p.pid)
 
     def thumbnail(self, fname, time, outfile, size=None, quality=DEFAULT_JPEG_QUALITY):
         """
