@@ -199,19 +199,21 @@ class Converter(object):
 
         if twopass:
             optlist1 = self.parse_options(options, 1)
-            for timecode in self.ffmpeg.convert(infile, outfile, optlist1,
-                                                timeout=timeout):
-                yield int((50.0 * timecode) / info.format.duration)
+            return self.ffmpeg.convert(infile, outfile, optlist1, timeout=timeout)
+            # for timecode in self.ffmpeg.convert(infile, outfile, optlist1,
+            #                                     timeout=timeout):
+            #     yield int((50.0 * timecode) / info.format.duration)
 
             optlist2 = self.parse_options(options, 2)
-            for timecode in self.ffmpeg.convert(infile, outfile, optlist2,
-                                                timeout=timeout):
-                yield int(50.0 + (50.0 * timecode) / info.format.duration)
+            return self.ffmpeg.convert(infile, outfile, optlist2, timeout=timeout)
+            # for timecode in self.ffmpeg.convert(infile, outfile, optlist2,
+            #                                     timeout=timeout):
+            #     yield int(50.0 + (50.0 * timecode) / info.format.duration)
         else:
             optlist = self.parse_options(options, twopass)
-            for timecode in self.ffmpeg.convert(infile, outfile, optlist,
-                                                timeout=timeout):
-                yield int((100.0 * timecode) / info.format.duration)
+            return self.ffmpeg.convert(infile, outfile, optlist, timeout=timeout)
+            # for timecode in self.ffmpeg.convert(infile, outfile, optlist, timeout=timeout):
+            #     yield int((100.0 * timecode) / info.format.duration)
 
     def probe(self, fname, posters_as_video=True):
         """
