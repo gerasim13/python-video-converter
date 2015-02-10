@@ -215,12 +215,12 @@ class VideoCodec(BaseCodec):
                 h0 = int(w / aspect)
                 assert h0 > h, (sw, sh, w, h)
                 dh = (h0 - h) / 2
-                return w, h0, 'scale=%d:%d, crop=%d:%d:0:%d, setsar=1:1' % (w, h0, w, h, dh)
+                return w, h0, 'scale=%d:%d, crop=%d:%d:0:%d, setsar=1:1' % (w, h, w, h, dh)
             else:  # source is wider, need to crop left/right
                 w0 = int(h * aspect)
                 assert w0 > w, (sw, sh, w, h)
                 dw = (w0 - w) / 2
-                return w0, h, 'scale=%d:%d, crop=%d:%d:%d:0, setsar=1:1' % (w0, h, w, h, dw)
+                return w0, h, 'scale=%d:%d, crop=%d:%d:%d:0, setsar=1:1' % (w, h, w, h, dw)
 
         if mode == 'pad':
             # target is taller, need to pad top/bottom
