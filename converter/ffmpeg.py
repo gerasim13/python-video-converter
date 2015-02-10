@@ -422,7 +422,7 @@ class FFMpeg(object):
         cmds = [self.ffmpeg_path, '-i', infile]
         cmds.extend(opts)
         cmds.extend(['-y', outfile])
-        cmds.extend(['-loglevel', 'error'])
+        #cmds.extend(['-loglevel', 'error'])
         cmds.extend(['-movflags', 'faststart'])
 
         if timeout:
@@ -443,7 +443,7 @@ class FFMpeg(object):
         stdout = stdout.splitlines()
         
         cmd = ' '.join(cmds)
-        if len(stderr) > 0:
+        if len(stderr) > 0 and 'error' in stderr:
             err = stderr[0]
             raise FFMpegConvertError('Encoding error', cmd, stderr, err, pid=p.pid)
         return return_code
