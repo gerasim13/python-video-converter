@@ -132,7 +132,7 @@ class Converter(object):
 
         return optlist
 
-    def convert(self, infile, outfile, options, twopass=False, timeout=10):
+    def convert(self, infile, outfile, options, stats_file=None, twopass=False, timeout=10):
         """
         Convert media file (infile) according to specified options, and
         save it to outfile. For two-pass encoding, specify the pass (1 or 2)
@@ -199,14 +199,14 @@ class Converter(object):
 
         if twopass:
             optlist1 = self.parse_options(options, 1)
-            code = self.ffmpeg.convert(infile, outfile, optlist1, timeout=timeout)
+            code = self.ffmpeg.convert(infile, outfile, optlist1, stats_file, timeout=timeout)
             if code > 0:
                 return code
             optlist2 = self.parse_options(options, 2)
-            return self.ffmpeg.convert(infile, outfile, optlist2, timeout=timeout)
+            return self.ffmpeg.convert(infile, outfile, optlist2, stats_file, timeout=timeout)
         else:
             optlist = self.parse_options(options, twopass)
-            return self.ffmpeg.convert(infile, outfile, optlist, timeout=timeout)
+            return self.ffmpeg.convert(infile, outfile, optlist, stats_file, timeout=timeout)
 
     def probe(self, fname, posters_as_video=True):
         """

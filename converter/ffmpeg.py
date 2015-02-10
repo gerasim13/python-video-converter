@@ -395,7 +395,7 @@ class FFMpeg(object):
 
         return info
 
-    def convert(self, infile, outfile, opts, timeout=10):
+    def convert(self, infile, outfile, opts, stats_file=None, timeout=10):
         """
         Convert the source media (infile) according to specified options
         (a list of ffmpeg switches as strings) and save it to outfile.
@@ -422,8 +422,11 @@ class FFMpeg(object):
         cmds = [self.ffmpeg_path, '-i', infile]
         cmds.extend(opts)
         cmds.extend(['-y', outfile])
-        #cmds.extend(['-loglevel', 'error'])
+        cmds.extend(['-loglevel', 'error'])
         cmds.extend(['-movflags', 'faststart'])
+        
+        if stats_file is not None:
+            cmds.extend(['-vstats_file', stats_file])
 
         if timeout:
             def on_sigalrm(*_):
@@ -443,7 +446,7 @@ class FFMpeg(object):
         stdout = stdout.splitlines()
         
         cmd = ' '.join(cmds)
-        if len(stderr) > 0 and 'error' in stderr:
+        if len(stderr) > 0:
             err = stderr[0]
             raise FFMpegConvertError('Encoding error', cmd, stderr, err, pid=p.pid)
         return return_code
