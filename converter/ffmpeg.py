@@ -4,6 +4,7 @@ import os.path
 import os
 import re
 import signal
+import subprocess
 from subprocess import Popen, PIPE
 import logging
 import locale
@@ -348,11 +349,49 @@ class FFMpeg(object):
             raise FFMpegError("ffprobe binary not found: " + self.ffprobe_path)
 
     @staticmethod
-    def _spawn(cmds):
+    def _spawn(cmds, shell=False):
         logger.debug('Spawning ffmpeg with command: ' + ' '.join(cmds))
         print('Spawning ffmpeg with command: ' + ' '.join(cmds))
-        return Popen(cmds, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE,
-                     close_fds=True)
+        return Popen(cmds, 
+        shell=shell,
+        close_fds=True,
+        stdout=PIPE, 
+        stdin=PIPE,
+        stderr=PIPE)
+        
+    @staticmethod
+    def _popen_spawn(self, cmds, shell=False, timeout=0):
+        if timeout:
+            def on_sigalrm(*_):
+                signal.signal(signal.SIGALRM, signal.SIG_DFL)
+                raise Exception('timed out while waiting for ffmpeg')
+
+            signal.signal(signal.SIGALRM, on_sigalrm)
+
+        try:
+            p = self._spawn(cmds)
+        except OSError:
+            raise FFMpegError('Error while calling ffmpeg binary')
+        
+        stdout,stderr = p.communicate()
+        return_code   = p.wait()
+        
+        if not stdout is None:
+            stdout = stdout.splitlines()
+        
+        if not stderr is None:
+            stderr = stderr.splitlines()
+            if len(stderr) > 0:
+                err    = stderr[0]
+                cmd    = ' '.join(cmds)
+                raise FFMpegConvertError('Encoding error', cmd, stderr, err, pid=p.pid)
+        return return_code;
+    
+    @staticmethod
+    def _popen_call(self, cmds, shell=True, timeout=0):
+        print('Spawning ffmpeg with command: ' + ' '.join(cmds));
+        cmd = ' '.join(cmds);
+        return os.system(cmd);
 
     def probe(self, fname, posters_as_video=True):
         """
@@ -416,39 +455,29 @@ class FFMpeg(object):
         ...    pass # can be used to inform the user about conversion progress
 
         """
+        
         if not os.path.exists(infile):
             raise FFMpegError("Input file doesn't exist: " + infile)
 
         cmds = [self.ffmpeg_path, '-i', infile]
         cmds.extend(opts)
-        cmds.extend(['-y', outfile])
-        cmds.extend(['-loglevel', 'error'])
-        cmds.extend(['-movflags', 'faststart'])
-        
+            
         if stats_file is not None:
             cmds.extend(['-vstats_file', stats_file])
-
-        if timeout:
-            def on_sigalrm(*_):
-                signal.signal(signal.SIGALRM, signal.SIG_DFL)
-                raise Exception('timed out while waiting for ffmpeg')
-
-            signal.signal(signal.SIGALRM, on_sigalrm)
-
-        try:
-            p = self._spawn(cmds)
-        except OSError:
-            raise FFMpegError('Error while calling ffmpeg binary')
-        
-        stdout,stderr = p.communicate()
-        return_code   = p.wait()
-        stderr = stderr.splitlines()
-        stdout = stdout.splitlines()
-        
-        cmd = ' '.join(cmds)
-        if len(stderr) > 0:
-            err = stderr[0]
-            raise FFMpegConvertError('Encoding error', cmd, stderr, err, pid=p.pid)
+            
+        if outfile is not None:
+            cmds.extend(['-movflags', 'faststart'])
+            cmds.extend(['-loglevel', 'error'])
+            cmds.extend(['-y', outfile])
+        else:
+            cmds.extend(['-loglevel', 'panic'])
+            
+        return_code = 0;
+        if outfile is not None:
+            return_code = self._popen_spawn(self, cmds);
+        else:
+            return_code = self._popen_call(self, cmds);
+            
         return return_code
 
     def thumbnail(self, fname, time, outfile, size=None, quality=DEFAULT_JPEG_QUALITY):

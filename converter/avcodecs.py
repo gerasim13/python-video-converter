@@ -23,7 +23,6 @@ class BaseCodec(object):
 
     def safe_options(self, opts):
         safe = {}
-
         # Only copy options that are expected and of correct type
         # (and do typecasting on them)
         for k, v in opts.items():
@@ -354,9 +353,19 @@ class AudioCopyCodec(BaseCodec):
     Copy audio stream directly from the source.
     """
     codec_name = 'copy'
+    encoder_options = {
+        'map': str
+    };
 
     def parse_options(self, opt):
-        return ['-acodec', 'copy']
+        optlist = ['-acodec', 'copy'];
+        safe    = self.safe_options(opt);
+        if 'map' in safe:
+            string = str(safe['map']);
+            maps   = [x.strip() for x in string.split(',')];
+            for map_str in maps:
+                optlist.extend(['-map', map_str])
+        return optlist;
 
 
 class VideoCopyCodec(BaseCodec):
@@ -364,9 +373,16 @@ class VideoCopyCodec(BaseCodec):
     Copy video stream directly from the source.
     """
     codec_name = 'copy'
+    encoder_options = {
+        'bsf': str
+    };
 
     def parse_options(self, opt):
-        return ['-vcodec', 'copy']
+        optlist = ['-vcodec', 'copy'];
+        safe    = self.safe_options(opt);
+        if 'bsf' in safe:
+            optlist.extend(['-bsf', str(safe['bsf'])])
+        return optlist;
 
 
 class SubtitleCopyCodec(BaseCodec):

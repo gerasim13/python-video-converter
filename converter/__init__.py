@@ -116,11 +116,25 @@ class Converter(object):
 
         if 'map' in opt:
             m = opt['map']
-            if not type(m) == int:
-                raise ConverterError('map needs to be int')
-            else:
+            if type(m) == int:
                 format_options.extend(['-map', str(m)])
-
+            elif type(m) == str:
+                maps   = [x.strip() for x in m.split(',')];
+                for map_str in maps:
+                    format_options.extend(['-map', map_str])
+            else:
+                raise ConverterError('map needs to be int or string')
+                
+        if 'bsf' in opt:
+            m = opt['bsf']
+            if not type(m) == str:
+                raise ConverterError('bsf needs to be string')
+            else:
+                format_options.extend(['-bsf', m])
+        
+        # Remove subtitle options
+        if 'segment' in opt:
+            subtitle_options = [];
 
         # aggregate all options
         optlist = audio_options + video_options + subtitle_options + format_options
