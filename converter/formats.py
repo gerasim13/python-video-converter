@@ -123,7 +123,7 @@ class SegmentFormat(BaseFormat):
         if 'segment' not in opt:
             raise ValueError('Segment options required')
         safe        = self.safe_options(opt['segment']);
-        optlist     = super().parse_options(opt);
+        optlist     = super(SegmentFormat, self).parse_options(opt);
         if 'segment' in opt:
             if 'time' in safe:
                 optlist.extend(['-segment_time', str(safe['time'])])
